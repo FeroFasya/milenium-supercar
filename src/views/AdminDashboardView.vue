@@ -89,6 +89,10 @@ function openEditModal(u) {
 }
 
 async function handleSaveUnit(payload) {
+  if (!payload.name || !payload.photos?.length) {
+    showToast('Nama mobil dan minimal 1 foto wajib diisi.', 'error')
+    return
+  }
   saving.value = true
   try {
     if (editingUnit.value?.id) {

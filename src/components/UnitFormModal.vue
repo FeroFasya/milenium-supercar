@@ -34,7 +34,12 @@ const form = reactive({
 const uploading = ref(false)
 const uploadProgress = ref('')
 const uploadError = ref('')
+const formError = ref('')
 const fileInputRef = ref(null)
+const formBodyRef = ref(null)
+
+const MIN_YEAR = 1950
+const MAX_YEAR = new Date().getFullYear() + 2
 
 function resetForm(u) {
   form.name = u?.name || ''
@@ -54,6 +59,7 @@ function resetForm(u) {
   form.photos = Array.isArray(u?.photos) ? [...u.photos] : []
   uploadError.value = ''
   uploadProgress.value = ''
+  formError.value = ''
 }
 
 watch(
@@ -89,6 +95,7 @@ async function handleFileSelect(e) {
       uploadProgress.value = `Mengompres & upload foto ${i + 1} dari ${selected.length}...`
       const url = await uploadPhotoToCloudinary(selected[i])
       form.photos.push(url)
+      formError.value = ''
     }
   } catch (err) {
     uploadError.value = err?.message || 'Gagal mengupload foto. Coba lagi.'
@@ -108,13 +115,34 @@ function removePhoto(idx) {
   form.photos.splice(idx, 1)
 }
 
+function sanitizeYearInput(e) {
+  const digits = String(e.target.value || '').replace(/\D/g, '').slice(0, 4)
+  form.year = digits
+}
+
 function handleSubmit() {
   uploadError.value = ''
-  if (!form.name.trim()) return
-  if (form.photos.length === 0) {
-    uploadError.value = 'Upload minimal 1 foto mobil terlebih dahulu sebelum menyimpan.'
+  formError.value = ''
+
+  if (!form.name.trim()) {
+    formError.value = 'Nama mobil wajib diisi.'
     return
   }
+
+  const yearNum = Number(form.year)
+  if (!/^\d{4}$/.test(form.year.trim()) || yearNum < MIN_YEAR || yearNum > MAX_YEAR) {
+    formError.value = `Tahun (NIK) harus 4 digit angka yang valid (${MIN_YEAR}–${MAX_YEAR}).`
+    return
+  }
+
+  if (form.photos.length === 0) {
+    const msg = 'Upload minimal 1 foto mobil terlebih dahulu sebelum menyimpan.'
+    uploadError.value = msg
+    formError.value = msg
+    if (formBodyRef.value) formBodyRef.value.scrollTo({ top: 0, behavior: 'smooth' })
+    return
+  }
+
   const highlights = form.highlightsText
     .split('\n')
     .map((line) => line.replace(/^[-•*]\s*/, '').trim())
@@ -176,14 +204,14 @@ function handleSubmit() {
         </div>
 
         <!-- Form Body -->
-        <form id="unitForm" class="flex-1 overflow-y-auto p-5 space-y-6" @submit.prevent="handleSubmit">
+        <form id="unitForm" ref="formBodyRef" class="flex-1 overflow-y-auto p-5 space-y-6" @submit.prevent="handleSubmit">
           <!-- FOTO UPLOADER -->
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="text-xs uppercase tracking-wider text-concrete font-medium">
-                Foto Unit ({{ form.photos.length }} / {{ MAX_PHOTOS_PER_UNIT }})
+                Foto Unit <span class="text-red">*</span> ({{ form.photos.length }} / {{ MAX_PHOTOS_PER_UNIT }})
               </label>
-              <span class="text-[11px] text-concrete">Auto-compress WebP otomatis</span>
+              <span class="text-[11px] text-concrete">Wajib min. 1 foto · Auto-compress WebP</span>
             </div>
 
             <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
@@ -283,11 +311,14 @@ function handleSubmit() {
                 Tahun (NIK) <span class="text-red">*</span>
               </label>
               <input
-                v-model="form.year"
+                :value="form.year"
                 type="text"
+                inputmode="numeric"
+                maxlength="4"
                 required
-                placeholder="mis. 2025"
+                :placeholder="`mis. ${new Date().getFullYear()} (${MIN_YEAR}–${MAX_YEAR})`"
                 class="w-full bg-ink border border-white/15 px-3.5 py-2.5 text-sm text-white rounded-sm"
+                @input="sanitizeYearInput"
               />
             </div>
 
@@ -419,23 +450,28 @@ function handleSubmit() {
         </form>
 
         <!-- Modal Footer -->
-        <div class="flex items-center justify-end gap-3 px-5 py-4 border-t border-white/10 bg-ink">
-          <button
-            type="button"
-            class="px-4 py-2.5 text-sm text-concrete hover:text-white"
-            :disabled="uploading || saving"
-            @click="$emit('close')"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            form="unitForm"
-            :disabled="uploading || saving"
-            class="btn-shine text-white px-6 py-2.5 rounded-sm text-sm font-medium disabled:opacity-50"
-          >
-            {{ saving ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Tambahkan Unit' }}
-          </button>
+        <div class="px-5 py-4 border-t border-white/10 bg-ink space-y-3">
+          <p v-if="formError" class="text-xs text-red bg-red/10 border border-red/30 px-3 py-2 rounded-sm">
+            {{ formError }}
+          </p>
+          <div class="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              class="px-4 py-2.5 text-sm text-concrete hover:text-white"
+              :disabled="uploading || saving"
+              @click="$emit('close')"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              form="unitForm"
+              :disabled="uploading || saving"
+              class="btn-shine text-white px-6 py-2.5 rounded-sm text-sm font-medium disabled:opacity-50"
+            >
+              {{ saving ? 'Menyimpan...' : isEditing ? 'Simpan Perubahan' : 'Tambahkan Unit' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
