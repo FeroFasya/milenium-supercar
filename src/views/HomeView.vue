@@ -13,8 +13,10 @@ const visibleCount = ref(INITIAL_VISIBLE)
 const loadingUnits = ref(true)
 const selectedUnit = ref(null)
 const showroomLightbox = ref(null)
-const isInAppBrowser = ref(false)
-const GOOGLE_MAPS_LINK = 'https://www.google.com/maps/search/?api=1&query=Milenium+Supercar+Bursa+Mobil+Bintaro+Blok+11-12+Sektor+7'
+const GOOGLE_MAPS_EMBED =
+  'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.881745253704!2d106.72279877440734!3d-6.279274093709567!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f10011898a91%3A0x8fd967f46c4d467a!2sSIGMA%20AUTO!5e0!3m2!1sid!2sid!4v1795670251039!5m2!1sid!2sid'
+const GOOGLE_MAPS_LINK =
+  'https://www.google.com/maps/place/SIGMA+AUTO/@-6.2792741,106.7227988,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f10011898a91:0x8fd967f46c4d467a!8m2!3d-6.2792741!4d106.7253737!16s%2Fg%2F11mlsfdldv'
 
 const showroomPhotos = [
   {
@@ -77,7 +79,6 @@ function onScroll() {
 }
 
 onMounted(async () => {
-  isInAppBrowser.value = /Instagram|FBAN|FBAV|FB_IAB|TikTok/i.test(navigator.userAgent || '')
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
 
@@ -424,46 +425,14 @@ onUnmounted(() => {
             </dl>
           </div>
           <div class="w-full space-y-3">
-            <!-- Instagram/Social In-App Browser Fallback (avoids Android WebView ERR_BLOCKED_BY_RESPONSE) -->
-            <a
-              v-if="isInAppBrowser"
-              :href="GOOGLE_MAPS_LINK"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="group relative aspect-[4/3] w-full border border-white/15 hover:border-red/60 bg-asphalt flex flex-col items-center justify-center p-6 text-center overflow-hidden transition-colors"
-            >
-              <img
-                src="/showroom-3.webp"
-                alt="Lokasi Milenium Supercar Bintaro"
-                class="absolute inset-0 w-full h-full object-cover opacity-25 group-hover:scale-105 transition-transform duration-700"
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/80 to-ink/60" />
-              <div class="relative z-10 flex flex-col items-center">
-                <div class="w-12 h-12 rounded-full bg-red/20 border border-red/50 flex items-center justify-center mb-3 text-red">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11Z" />
-                    <circle cx="12" cy="10" r="2.5" />
-                  </svg>
-                </div>
-                <p class="font-display text-xl text-white">Milenium Supercar</p>
-                <p class="mt-1 text-xs text-bone/80 max-w-xs">
-                  Bursa Mobil Bintaro Blok 11-12, Sektor 7, Tangerang Selatan
-                </p>
-                <span class="mt-5 btn-shine text-white text-xs sm:text-sm px-5 py-2.5 rounded-sm font-medium">
-                  Buka Petunjuk Arah di Google Maps ↗
-                </span>
-              </div>
-            </a>
-
-            <!-- Standard Browser Interactive Google Maps Embed -->
-            <div v-else class="aspect-[4/3] w-full border border-white/10 bg-asphalt">
+            <div class="aspect-[4/3] w-full border border-white/10 bg-asphalt">
               <iframe
-                title="Lokasi Milenium Supercar di Bursa Mobil Bintaro"
-                class="w-full h-full"
+                title="Lokasi Milenium Supercar (SIGMA AUTO) di Bursa Mobil Bintaro Blok B11-12"
+                class="w-full h-full border-0"
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
                 allowfullscreen
-                src="https://maps.google.com/maps?q=Milenium%20Supercar%20Bursa%20Mobil%20Bintaro&t=&z=16&ie=UTF8&iwloc=&output=embed"
+                :src="GOOGLE_MAPS_EMBED"
               />
             </div>
 
@@ -474,7 +443,7 @@ onUnmounted(() => {
                 rel="noopener noreferrer"
                 class="text-xs text-concrete hover:text-white underline underline-offset-4"
               >
-                Buka di aplikasi Google Maps ↗
+                Buka petunjuk arah di Google Maps ↗
               </a>
             </div>
           </div>
