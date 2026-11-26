@@ -78,9 +78,16 @@ function onScroll() {
   scrolled.value = window.scrollY > 40
 }
 
+function onKeyDown(e) {
+  if (e.key === 'Escape' && showroomLightbox.value) {
+    showroomLightbox.value = null
+  }
+}
+
 onMounted(async () => {
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('keydown', onKeyDown)
 
   try {
     const liveUnits = await fetchUnits()
@@ -95,6 +102,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('keydown', onKeyDown)
 })
 </script>
 
@@ -454,7 +462,7 @@ onUnmounted(() => {
     <div class="hairline" />
 
     <!-- FOOTER -->
-    <footer class="border-t border-white/10 py-10">
+    <footer class="border-t border-white/10 pt-10 pb-24 sm:pb-12">
       <div class="max-w-6xl mx-auto px-5 flex flex-col md:flex-row md:justify-between gap-6 text-sm text-concrete">
         <div>
           <img

@@ -152,7 +152,6 @@ onUnmounted(() => {
               <img
                 :src="optimizeImageUrl(src, 240)"
                 :alt="`Thumbnail ${idx + 1}`"
-                loading="lazy"
                 class="w-full h-full object-cover"
               />
             </button>
