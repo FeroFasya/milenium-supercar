@@ -380,7 +380,7 @@ onUnmounted(() => {
             </div>
             <div>
               <h3 class="font-display text-xl mb-2 text-white">Test drive tersedia</h3>
-              <p class="text-concrete text-sm">Hubungi Rio untuk atur jadwal. Showroom buka 24 jam.</p>
+              <p class="text-concrete text-sm">Hubungi Rio Kustiawan untuk atur jadwal. Showroom buka 24 jam.</p>
             </div>
           </div>
         </div>
@@ -405,7 +405,7 @@ onUnmounted(() => {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    0812-8005-68 (Rio)
+                    0812-8005-68 (Rio Kustiawan)
                   </a>
                 </dd>
               </div>
