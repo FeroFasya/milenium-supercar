@@ -12,6 +12,48 @@ const units = ref([])
 const visibleCount = ref(INITIAL_VISIBLE)
 const loadingUnits = ref(true)
 const selectedUnit = ref(null)
+const showroomLightbox = ref(null)
+
+const showroomPhotos = [
+  {
+    src: '/showroom-1.webp',
+    alt: 'Lineup Ferrari dan mobil premium di showroom Milenium Supercar',
+    caption: 'Lineup Supercar & Luxury',
+  },
+  {
+    src: '/showroom-2.webp',
+    alt: 'Lamborghini, Porsche 911 Targa, dan Ferrari di Milenium Supercar Bintaro',
+    caption: 'Unit Ready Stock Pilihan',
+  },
+  {
+    src: '/showroom-3.webp',
+    alt: 'Suasana ruang pamer Milenium Supercar Bursa Mobil Bintaro Blok 11-12',
+    caption: 'Bursa Mobil Bintaro Blok 11-12',
+  },
+]
+
+const services = [
+  {
+    num: '01',
+    title: 'Import',
+    desc: 'Unit premium dan supercar dari luar negeri, dicarikan sesuai spesifikasi yang Anda mau.',
+  },
+  {
+    num: '02',
+    title: 'New car',
+    desc: 'Unit baru dengan NIK terkini dan garansi ATPM, siap dibawa pulang.',
+  },
+  {
+    num: '03',
+    title: 'Trade in',
+    desc: 'Tukar mobil lama dengan unit pilihan Anda, selisihnya dihitung langsung.',
+  },
+  {
+    num: '04',
+    title: 'Titip jual (consign)',
+    desc: 'Mobil Anda dipajang dan dipasarkan di showroom serta ke 18 ribu lebih pengikut Instagram kami.',
+  },
+]
 
 const visibleUnits = computed(() => units.value.slice(0, visibleCount.value))
 const remainingCount = computed(() => Math.max(0, units.value.length - visibleCount.value))
@@ -251,44 +293,55 @@ onUnmounted(() => {
         </div>
       </section>
 
-      <!-- LAYANAN -->
+      <!-- LAYANAN & SHOWROOM -->
       <section id="layanan" class="py-20 md:py-28">
-        <div class="max-w-6xl mx-auto px-5 grid lg:grid-cols-5 gap-12 items-start">
-          <div class="lg:col-span-2">
-            <h2 class="metal font-display text-3xl md:text-5xl">Satu showroom, empat cara bertransaksi</h2>
-            <p class="mt-5 text-concrete">
+        <div class="max-w-6xl mx-auto px-5 space-y-12">
+          <!-- Header -->
+          <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <h2 class="metal font-display text-3xl md:text-5xl max-w-2xl">
+              Satu showroom, empat cara bertransaksi
+            </h2>
+            <p class="text-concrete max-w-sm">
               Mau beli, ganti unit, atau jual mobil, semuanya diurus lewat satu kontak.
             </p>
-            <img
-              src="https://placehold.co/600x400/17171a/8d8f94?text=Showroom+Milenium+Supercar"
-              alt="Suasana showroom Milenium Supercar"
-              class="mt-8 w-full aspect-[3/2] object-cover rounded-sm border border-white/10"
-            />
           </div>
-          <div class="lg:col-span-3 grid sm:grid-cols-2 gap-px bg-white/10 border border-white/10">
-            <div class="tile bg-ink p-7">
-              <h3 class="font-display text-xl mb-2">Import</h3>
-              <p class="text-concrete text-sm">
-                Unit premium dan supercar dari luar negeri, dicarikan sesuai spesifikasi yang Anda mau.
-              </p>
+
+          <!-- 4 Service Tiles in 1 Clean Row -->
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 border border-white/10">
+            <div v-for="svc in services" :key="svc.num" class="tile bg-ink p-7 flex flex-col">
+              <span class="text-xs font-medium tracking-[.22em] text-red mb-3">{{ svc.num }}</span>
+              <h3 class="font-display text-xl mb-2 text-white">{{ svc.title }}</h3>
+              <p class="text-concrete text-sm leading-relaxed">{{ svc.desc }}</p>
             </div>
-            <div class="tile bg-ink p-7">
-              <h3 class="font-display text-xl mb-2">New car</h3>
-              <p class="text-concrete text-sm">
-                Unit baru dengan NIK terkini dan garansi ATPM, siap dibawa pulang.
-              </p>
+          </div>
+
+          <!-- Editorial 3-Column Showroom Gallery -->
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <p class="text-xs uppercase tracking-[.22em] text-concrete">Suasana Showroom</p>
+              <p class="text-xs text-concrete/80">Klik foto untuk memperbesar</p>
             </div>
-            <div class="tile bg-ink p-7">
-              <h3 class="font-display text-xl mb-2">Trade in</h3>
-              <p class="text-concrete text-sm">
-                Tukar mobil lama dengan unit pilihan Anda, selisihnya dihitung langsung.
-              </p>
-            </div>
-            <div class="tile bg-ink p-7">
-              <h3 class="font-display text-xl mb-2">Titip jual (consign)</h3>
-              <p class="text-concrete text-sm">
-                Mobil Anda dipajang dan dipasarkan di showroom serta ke 18 ribu lebih pengikut Instagram kami.
-              </p>
+            <div class="grid md:grid-cols-3 gap-5">
+              <button
+                v-for="photo in showroomPhotos"
+                :key="photo.src"
+                type="button"
+                class="group relative aspect-[4/4] overflow-hidden border border-white/10 hover:border-red/60 transition-colors text-left bg-asphalt"
+                @click="showroomLightbox = photo"
+              >
+                <img
+                  :src="photo.src"
+                  :alt="photo.alt"
+                  loading="lazy"
+                  decoding="async"
+                  class="w-full h-full object-cover object-[center_72%] transition-transform duration-700 group-hover:scale-105"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                <div class="absolute inset-x-0 bottom-0 p-4 flex items-end justify-between gap-2">
+                  <span class="text-xs sm:text-sm text-bone/90 font-medium">{{ photo.caption }}</span>
+                  <span class="text-[11px] text-concrete group-hover:text-white transition-colors">Lihat ↗</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -420,5 +473,33 @@ onUnmounted(() => {
 
     <!-- COMBINED DETAIL & GALLERY MODAL -->
     <UnitDetailModal :unit="selectedUnit" @close="selectedUnit = null" />
+
+    <!-- SHOWROOM PHOTO LIGHTBOX -->
+    <Teleport to="body">
+      <div
+        v-if="showroomLightbox"
+        class="fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center p-4 sm:p-8"
+        role="dialog"
+        aria-modal="true"
+        @click.self="showroomLightbox = null"
+      >
+        <button
+          type="button"
+          class="absolute top-4 right-4 p-2 text-bone/80 hover:text-white"
+          aria-label="Tutup foto showroom"
+          @click="showroomLightbox = null"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+        <img
+          :src="showroomLightbox.src"
+          :alt="showroomLightbox.alt"
+          class="max-h-[82vh] max-w-full object-contain rounded-sm border border-white/10"
+        />
+        <p class="mt-4 text-sm text-bone/85">{{ showroomLightbox.caption }}</p>
+      </div>
+    </Teleport>
   </div>
 </template>

@@ -3,6 +3,7 @@ dist/
 .env
 .env.local
 .DS_Store
+/showroom-raw/
 /prototype.html
 /09231PRO Milenium Supercar Logo-01.png
 /09231PRO Milenium Supercar Logo.jpg
