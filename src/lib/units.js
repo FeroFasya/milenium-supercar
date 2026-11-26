@@ -15,6 +15,26 @@ export const MAX_UNITS = 35
 export const MAX_PHOTOS_PER_UNIT = 15
 export const WA_NUMBER = '62812800568'
 
+/**
+ * Format raw digits (e.g. "5200000000") into Indonesian thousands string ("5.200.000.000").
+ */
+export function formatRupiahDigits(raw) {
+  const digits = String(raw || '').replace(/\D/g, '')
+  if (!digits) return ''
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
+
+/**
+ * Format stored price for display ("Rp 5.200.000.000").
+ */
+export function displayPrice(price) {
+  if (!price || !String(price).trim()) return ''
+  const trimmed = String(price).trim()
+  if (/^rp/i.test(trimmed)) return trimmed
+  const formatted = formatRupiahDigits(trimmed)
+  return formatted ? `Rp ${formatted}` : trimmed
+}
+
 const unitsRef = collection(db, 'units')
 
 export const SAMPLE_UNITS = [

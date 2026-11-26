@@ -1,14 +1,20 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import UnitCard from '../components/UnitCard.vue'
-import GalleryModal from '../components/GalleryModal.vue'
+import UnitDetailModal from '../components/UnitDetailModal.vue'
 import { fetchUnits, SAMPLE_UNITS, WA_NUMBER } from '../lib/units'
+
+const INITIAL_VISIBLE = 6
 
 const mobileMenuOpen = ref(false)
 const scrolled = ref(false)
 const units = ref([])
+const visibleCount = ref(INITIAL_VISIBLE)
 const loadingUnits = ref(true)
-const galleryUnit = ref(null)
+const selectedUnit = ref(null)
+
+const visibleUnits = computed(() => units.value.slice(0, visibleCount.value))
+const remainingCount = computed(() => Math.max(0, units.value.length - visibleCount.value))
 
 const marqueeItems = [
   'Porsche',
@@ -213,11 +219,22 @@ onUnmounted(() => {
           <!-- Unit Grid -->
           <div v-else class="grid gap-8 lg:grid-cols-3">
             <UnitCard
-              v-for="u in units"
+              v-for="u in visibleUnits"
               :key="u.id"
               :unit="u"
-              @open-gallery="galleryUnit = $event"
+              @open-detail="selectedUnit = $event"
             />
+          </div>
+
+          <!-- Load More Button (Pagination for fast initial load) -->
+          <div v-if="!loadingUnits && remainingCount > 0" class="mt-10 text-center">
+            <button
+              type="button"
+              class="border border-white/30 hover:border-white px-7 py-3 rounded-sm text-sm font-medium text-bone hover:text-white transition-colors"
+              @click="visibleCount += 6"
+            >
+              Muat lebih banyak ({{ remainingCount }} unit lagi)
+            </button>
           </div>
 
           <p class="mt-10 text-concrete text-sm">
@@ -401,7 +418,7 @@ onUnmounted(() => {
       </svg>
     </a>
 
-    <!-- GALLERY MODAL -->
-    <GalleryModal :unit="galleryUnit" @close="galleryUnit = null" />
+    <!-- COMBINED DETAIL & GALLERY MODAL -->
+    <UnitDetailModal :unit="selectedUnit" @close="selectedUnit = null" />
   </div>
 </template>

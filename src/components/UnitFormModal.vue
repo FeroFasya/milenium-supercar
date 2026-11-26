@@ -1,7 +1,9 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
-import { uploadPhotoToCloudinary } from '../lib/cloudinary'
-import { MAX_PHOTOS_PER_UNIT } from '../lib/units'
+import { uploadPhotoToCloudinary, optimizeImageUrl } from '../lib/cloudinary'
+import { MAX_PHOTOS_PER_UNIT, formatRupiahDigits } from '../lib/units'
+
+const DRAFT_KEY = 'milenium_unit_draft_v1'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -12,6 +14,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'save'])
 
 const isEditing = computed(() => Boolean(props.unit?.id))
+const draftRestored = ref(false)
 
 const form = reactive({
   name: '',
@@ -41,13 +44,101 @@ const formBodyRef = ref(null)
 const MIN_YEAR = 1950
 const MAX_YEAR = new Date().getFullYear() + 2
 
-function resetForm(u) {
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    const hasContent =
+      parsed.name ||
+      parsed.subtitle ||
+      parsed.year ||
+      parsed.priceDigits ||
+      parsed.odometer ||
+      parsed.highlightsText ||
+      (Array.isArray(parsed.photos) && parsed.photos.length > 0)
+    return hasContent ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+function saveDraft() {
+  if (isEditing.value || !props.open) return
+  try {
+    localStorage.setItem(
+      DRAFT_KEY,
+      JSON.stringify({
+        name: form.name,
+        subtitle: form.subtitle,
+        year: form.year,
+        condition: form.condition,
+        status: form.status,
+        priceDigits: form.price,
+        odometer: form.odometer,
+        tax: form.tax,
+        exteriorColor: form.exteriorColor,
+        interiorColor: form.interiorColor,
+        engine: form.engine,
+        power: form.power,
+        transmission: form.transmission,
+        highlightsText: form.highlightsText,
+        photos: form.photos,
+      })
+    )
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT_KEY)
+  } catch {
+    // Ignore
+  }
+  draftRestored.value = false
+}
+
+function discardDraft() {
+  clearDraft()
+  resetForm(null, true)
+}
+
+function resetForm(u, skipDraft = false) {
+  draftRestored.value = false
+  if (!u && !skipDraft) {
+    const draft = loadDraft()
+    if (draft) {
+      form.name = draft.name || ''
+      form.subtitle = draft.subtitle || ''
+      form.year = draft.year || ''
+      form.condition = draft.condition || 'Pre-Owned'
+      form.status = draft.status || 'READY'
+      form.price = formatRupiahDigits(draft.priceDigits || '')
+      form.odometer = draft.odometer || ''
+      form.tax = draft.tax || ''
+      form.exteriorColor = draft.exteriorColor || ''
+      form.interiorColor = draft.interiorColor || ''
+      form.engine = draft.engine || ''
+      form.power = draft.power || ''
+      form.transmission = draft.transmission || ''
+      form.highlightsText = draft.highlightsText || ''
+      form.photos = Array.isArray(draft.photos) ? [...draft.photos] : []
+      uploadError.value = ''
+      uploadProgress.value = ''
+      formError.value = ''
+      draftRestored.value = true
+      return
+    }
+  }
+
   form.name = u?.name || ''
   form.subtitle = u?.subtitle || ''
   form.year = u?.year ? String(u.year) : ''
   form.condition = u?.condition || 'Pre-Owned'
   form.status = u?.status || 'READY'
-  form.price = u?.price || ''
+  form.price = formatRupiahDigits(u?.price || '')
   form.odometer = u?.odometer || ''
   form.tax = u?.tax || ''
   form.exteriorColor = u?.exteriorColor || ''
@@ -69,6 +160,8 @@ watch(
   },
   { immediate: true }
 )
+
+watch(form, saveDraft, { deep: true })
 
 const remainingSlots = computed(() => Math.max(0, MAX_PHOTOS_PER_UNIT - form.photos.length))
 
@@ -120,6 +213,10 @@ function sanitizeYearInput(e) {
   form.year = digits
 }
 
+function sanitizePriceInput(e) {
+  form.price = formatRupiahDigits(e.target.value)
+}
+
 function handleSubmit() {
   uploadError.value = ''
   formError.value = ''
@@ -148,13 +245,15 @@ function handleSubmit() {
     .map((line) => line.replace(/^[-•*]\s*/, '').trim())
     .filter(Boolean)
 
+  const formattedPrice = form.price.trim() ? `Rp ${form.price.trim()}` : ''
+
   emit('save', {
     name: form.name.trim(),
     subtitle: form.subtitle.trim(),
     year: form.year.trim(),
     condition: form.condition,
     status: form.status,
-    price: form.price.trim(),
+    price: formattedPrice,
     odometer: form.odometer.trim(),
     tax: form.tax.trim(),
     exteriorColor: form.exteriorColor.trim(),
@@ -166,6 +265,8 @@ function handleSubmit() {
     photos: [...form.photos],
   })
 }
+
+defineExpose({ clearDraft })
 </script>
 
 <template>
@@ -205,6 +306,21 @@ function handleSubmit() {
 
         <!-- Form Body -->
         <form id="unitForm" ref="formBodyRef" class="flex-1 overflow-y-auto p-5 space-y-6" @submit.prevent="handleSubmit">
+          <!-- DRAFT RESTORED BANNER -->
+          <div
+            v-if="draftRestored && !isEditing"
+            class="flex items-center justify-between gap-3 bg-amber-500/10 border border-amber-500/30 px-3.5 py-2.5 rounded-sm text-xs text-amber-200"
+          >
+            <span>Draf terakhir yang belum disimpan berhasil dipulihkan otomatis.</span>
+            <button
+              type="button"
+              class="text-amber-300 hover:text-white underline underline-offset-2 whitespace-nowrap font-medium"
+              @click="discardDraft"
+            >
+              Reset draf
+            </button>
+          </div>
+
           <!-- FOTO UPLOADER -->
           <div>
             <div class="flex items-center justify-between mb-2">
@@ -222,7 +338,7 @@ function handleSubmit() {
                 class="relative group aspect-[4/3] bg-ink border rounded-sm overflow-hidden"
                 :class="idx === 0 ? 'border-red' : 'border-white/15'"
               >
-                <img :src="url" :alt="`Foto ${idx + 1}`" class="w-full h-full object-cover" />
+                <img :src="optimizeImageUrl(url, 400)" :alt="`Foto ${idx + 1}`" loading="lazy" class="w-full h-full object-cover" />
                 <span
                   v-if="idx === 0"
                   class="absolute top-1 left-1 bg-red text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-sm"
@@ -326,12 +442,17 @@ function handleSubmit() {
               <label class="block text-xs uppercase tracking-wider text-concrete mb-1.5">
                 Harga (Opsional)
               </label>
-              <input
-                v-model="form.price"
-                type="text"
-                placeholder="Kosongkan untuk tampil 'Tanya Harga'"
-                class="w-full bg-ink border border-white/15 px-3.5 py-2.5 text-sm text-white rounded-sm"
-              />
+              <div class="flex items-center bg-ink border border-white/15 rounded-sm focus-within:border-red">
+                <span class="pl-3.5 pr-2 text-sm text-concrete select-none">Rp</span>
+                <input
+                  :value="form.price"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="Kosongkan untuk 'Tanya Harga'"
+                  class="w-full bg-transparent pr-3.5 py-2.5 text-sm text-white focus:outline-none"
+                  @input="sanitizePriceInput"
+                />
+              </div>
             </div>
 
             <div>

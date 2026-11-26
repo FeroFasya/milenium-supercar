@@ -8,11 +8,13 @@ import {
   SAMPLE_UNITS,
   createUnit,
   deleteUnit,
+  displayPrice,
   fetchUnits,
   sortUnits,
   toggleUnitStatus,
   updateUnit,
 } from '../lib/units'
+import { optimizeImageUrl } from '../lib/cloudinary'
 import UnitFormModal from '../components/UnitFormModal.vue'
 
 const router = useRouter()
@@ -27,6 +29,7 @@ const activeFilter = ref('ALL')
 const searchQuery = ref('')
 
 const formOpen = ref(false)
+const formModalRef = ref(null)
 const editingUnit = ref(null)
 const limitModalOpen = ref(false)
 const deleteTarget = ref(null)
@@ -105,6 +108,7 @@ async function handleSaveUnit(payload) {
         return
       }
       await createUnit(payload)
+      formModalRef.value?.clearDraft()
       showToast(`"${payload.name}" berhasil ditambahkan ke katalog.`)
     }
     formOpen.value = false
@@ -335,8 +339,10 @@ onMounted(loadUnits)
           <div class="flex items-start gap-3.5 flex-1 min-w-0">
             <div class="relative w-24 sm:w-28 aspect-[4/3] bg-ink rounded-sm overflow-hidden flex-shrink-0 border border-white/10">
               <img
-                :src="u.photos?.[0] || '/hero.png'"
+                :src="optimizeImageUrl(u.photos?.[0], 400)"
                 :alt="u.name"
+                loading="lazy"
+                decoding="async"
                 class="w-full h-full object-cover"
                 :class="{ 'grayscale opacity-70': u.status === 'SOLD' }"
               />
@@ -366,7 +372,7 @@ onMounted(loadUnits)
               <h2 class="font-display text-lg text-white truncate mt-1">{{ u.name }}</h2>
               <p v-if="u.subtitle" class="text-xs text-concrete truncate">{{ u.subtitle }}</p>
               <p class="text-xs mt-1" :class="u.price ? 'text-bone font-medium' : 'text-concrete'">
-                {{ u.price || 'Price : Ask' }}
+                {{ displayPrice(u.price) || 'Price : Ask' }}
               </p>
             </div>
           </div>
@@ -409,6 +415,7 @@ onMounted(loadUnits)
 
     <!-- ADD / EDIT FORM MODAL -->
     <UnitFormModal
+      ref="formModalRef"
       :open="formOpen"
       :unit="editingUnit"
       :saving="saving"

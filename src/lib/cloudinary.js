@@ -3,6 +3,18 @@ export const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_P
 export const MAX_RAW_FILE_MB = 15
 
 /**
+ * Injects Cloudinary responsive optimization params (f_auto, q_auto, width limit)
+ * so catalog grid thumbnails load super fast (~40-60KB) while full modal loads crisp HD.
+ */
+export function optimizeImageUrl(url, width = 800) {
+  if (!url || typeof url !== 'string') return '/hero.png'
+  if (url.includes('res.cloudinary.com') && url.includes('/upload/')) {
+    return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width},c_limit/`)
+  }
+  return url
+}
+
+/**
  * Compress & convert image file to WebP directly in the browser using Canvas.
  * Shrinks 5-10MB phone photos into crisp ~150-250KB WebP files before upload.
  */
