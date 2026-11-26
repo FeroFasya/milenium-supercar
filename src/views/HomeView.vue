@@ -13,6 +13,8 @@ const visibleCount = ref(INITIAL_VISIBLE)
 const loadingUnits = ref(true)
 const selectedUnit = ref(null)
 const showroomLightbox = ref(null)
+const isInAppBrowser = ref(false)
+const GOOGLE_MAPS_LINK = 'https://www.google.com/maps/search/?api=1&query=Milenium+Supercar+Bursa+Mobil+Bintaro+Blok+11-12+Sektor+7'
 
 const showroomPhotos = [
   {
@@ -75,6 +77,7 @@ function onScroll() {
 }
 
 onMounted(async () => {
+  isInAppBrowser.value = /Instagram|FBAN|FBAV|FB_IAB|TikTok/i.test(navigator.userAgent || '')
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
 
@@ -420,14 +423,60 @@ onUnmounted(() => {
               </div>
             </dl>
           </div>
-          <div class="aspect-[4/3] w-full border border-white/10">
-            <iframe
-              title="Lokasi Milenium Supercar di Bursa Mobil Bintaro"
-              class="w-full h-full"
-              loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"
-              src="https://www.google.com/maps?q=Milenium+Supercar+Bursa+Mobil+Bintaro&output=embed"
-            />
+          <div class="w-full space-y-3">
+            <!-- Instagram/Social In-App Browser Fallback (avoids Android WebView ERR_BLOCKED_BY_RESPONSE) -->
+            <a
+              v-if="isInAppBrowser"
+              :href="GOOGLE_MAPS_LINK"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group relative aspect-[4/3] w-full border border-white/15 hover:border-red/60 bg-asphalt flex flex-col items-center justify-center p-6 text-center overflow-hidden transition-colors"
+            >
+              <img
+                src="/showroom-3.webp"
+                alt="Lokasi Milenium Supercar Bintaro"
+                class="absolute inset-0 w-full h-full object-cover opacity-25 group-hover:scale-105 transition-transform duration-700"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/80 to-ink/60" />
+              <div class="relative z-10 flex flex-col items-center">
+                <div class="w-12 h-12 rounded-full bg-red/20 border border-red/50 flex items-center justify-center mb-3 text-red">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11Z" />
+                    <circle cx="12" cy="10" r="2.5" />
+                  </svg>
+                </div>
+                <p class="font-display text-xl text-white">Milenium Supercar</p>
+                <p class="mt-1 text-xs text-bone/80 max-w-xs">
+                  Bursa Mobil Bintaro Blok 11-12, Sektor 7, Tangerang Selatan
+                </p>
+                <span class="mt-5 btn-shine text-white text-xs sm:text-sm px-5 py-2.5 rounded-sm font-medium">
+                  Buka Petunjuk Arah di Google Maps ↗
+                </span>
+              </div>
+            </a>
+
+            <!-- Standard Browser Interactive Google Maps Embed -->
+            <div v-else class="aspect-[4/3] w-full border border-white/10 bg-asphalt">
+              <iframe
+                title="Lokasi Milenium Supercar di Bursa Mobil Bintaro"
+                class="w-full h-full"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen
+                src="https://maps.google.com/maps?q=Milenium%20Supercar%20Bursa%20Mobil%20Bintaro&t=&z=16&ie=UTF8&iwloc=&output=embed"
+              />
+            </div>
+
+            <div class="flex justify-end">
+              <a
+                :href="GOOGLE_MAPS_LINK"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-xs text-concrete hover:text-white underline underline-offset-4"
+              >
+                Buka di aplikasi Google Maps ↗
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -453,8 +502,18 @@ onUnmounted(() => {
           <router-link to="/admin" class="text-concrete/60 hover:text-bone text-xs">Admin</router-link>
         </div>
       </div>
-      <p class="text-center text-xs text-concrete/60 mt-10">
+      <p class="text-center text-xs text-concrete/60 mt-10 px-5">
         &copy; {{ new Date().getFullYear() }} Milenium Supercar. All rights reserved.
+        <span class="mx-1.5">&middot;</span>
+        Made by
+        <a
+          href="https://www.instagram.com/rferofai"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-bone/75 hover:text-white underline underline-offset-4 transition-colors"
+        >
+          Fero Fasya
+        </a>
       </p>
     </footer>
 
