@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: https://mileniumsupercar.com/sitemap.xml
