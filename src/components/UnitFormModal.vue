@@ -109,7 +109,12 @@ function removePhoto(idx) {
 }
 
 function handleSubmit() {
+  uploadError.value = ''
   if (!form.name.trim()) return
+  if (form.photos.length === 0) {
+    uploadError.value = 'Upload minimal 1 foto mobil terlebih dahulu sebelum menyimpan.'
+    return
+  }
   const highlights = form.highlightsText
     .split('\n')
     .map((line) => line.replace(/^[-•*]\s*/, '').trim())
