@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.local
+.DS_Store
+/prototype.html
+/09231PRO Milenium Supercar Logo-01.png
+/09231PRO Milenium Supercar Logo.jpg
+/1.png
+/2.png
+/3.png
+/hero.mp4
+/hero.png
+/logo-wordmark.png
+/logo.png
